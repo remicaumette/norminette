@@ -53,6 +53,10 @@ func main() {
 			}
 		}
 
+		if len(files) == 0 {
+			return
+		}
+
 		response, err := norm.CheckFiles(files...)
 		if err != nil {
 			log.Fatalf("unable to use norminette: %v\n", err)
