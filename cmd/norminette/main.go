@@ -11,6 +11,24 @@ import (
 	"strings"
 )
 
+func recursiveAdd(file string, files *[]string) {
+	stat, err := os.Stat(file)
+	if err != nil {
+		return
+	}
+	if stat.IsDir() {
+		dir, err := ioutil.ReadDir(file)
+		if err != nil {
+			return
+		}
+		for _, dfile := range dir {
+			recursiveAdd(path.Join(file, dfile.Name()), files)
+		}
+	} else {
+		*files = append(*files, file)
+	}
+}
+
 func main() {
 	log.SetFlags(0)
 
@@ -32,27 +50,9 @@ func main() {
 		log.Printf("version: %v\n", version.Version)
 	} else {
 		files := make([]string, 0)
-
 		for _, file := range flag.Args() {
-			stat, err := os.Stat(file)
-			if err != nil {
-				log.Printf("[ERR]  %v: %v\n", file, err)
-				continue
-			}
-			if stat.IsDir() {
-				dir, err := ioutil.ReadDir(file)
-				if err != nil {
-					log.Printf("[ERR]  %v: %v\n", file, err)
-					continue
-				}
-				for _, dfile := range dir {
-					files = append(files, path.Join(file, dfile.Name()))
-				}
-			} else {
-				files = append(files, file)
-			}
+			recursiveAdd(file, &files)
 		}
-
 		if len(files) == 0 {
 			return
 		}

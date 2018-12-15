@@ -6,7 +6,7 @@ Because my norminette doesn't work.
 
 ```bash
 mkdir ~/.bin
-curl -L https://github.com/remicaumette/norminette/releases/download/v1.1.0/norminette -o ~/.bin/norminette
+curl -L https://github.com/remicaumette/norminette/releases/download/v1.2.0/norminette -o ~/.bin/norminette
 chmod a+x ~/.bin/norminette
 echo "export PATH=\"\$PATH:~/.bin\"" >> ~/.zshrc
 echo "alias norminette=~/.bin/norminette" >> ~/.zshrc
