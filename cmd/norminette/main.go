@@ -1,14 +1,16 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"github.com/remicaumette/norminette/pkg/norminette"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
+
+	"github.com/remicaumette/norminette/pkg/norminette"
+	flag "github.com/spf13/pflag"
 )
 
 func recursiveAdd(file string, files *[]string) {
@@ -24,7 +26,7 @@ func recursiveAdd(file string, files *[]string) {
 		for _, dfile := range dir {
 			recursiveAdd(path.Join(file, dfile.Name()), files)
 		}
-	} else {
+	} else if filepath.Ext(file) == ".c" || filepath.Ext(file) == ".h" {
 		*files = append(*files, file)
 	}
 }
@@ -32,11 +34,12 @@ func recursiveAdd(file string, files *[]string) {
 func main() {
 	log.SetFlags(0)
 
-	versionFlag := flag.Bool("version", false, "get the norminette version")
+	versionFlag := flag.BoolP("version", "v", false, "get the norminette version")
 	credentialsFlag := flag.String("credentials", "amqp://guest:guest@norminette.le-101.fr/", "change credentials")
+	disabledRulesFlag := flag.StringArrayP("rules", "R", []string{}, "Rule to disable")
 	flag.Parse()
 
-	norm, err := norminette.New(*credentialsFlag)
+	norm, err := norminette.New(*credentialsFlag, *disabledRulesFlag)
 	if err != nil {
 		log.Fatalf("unable to connect to rabbitmq: %v\n", err)
 	}
@@ -50,13 +53,16 @@ func main() {
 		log.Printf("version: %v\n", version.Version)
 	} else {
 		files := make([]string, 0)
-		for _, file := range flag.Args() {
+		args := flag.Args()
+		if len(args) == 0 {
+			args = append(args, ".")
+		}
+		for _, file := range args {
 			recursiveAdd(file, &files)
 		}
 		if len(files) == 0 {
 			return
 		}
-
 		response, err := norm.CheckFiles(files...)
 		if err != nil {
 			log.Fatalf("unable to use norminette: %v\n", err)

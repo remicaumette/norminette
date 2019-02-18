@@ -2,6 +2,7 @@ package norminette
 
 import (
 	"encoding/json"
+
 	"github.com/remicaumette/norminette/pkg/protocol"
 	"github.com/streadway/amqp"
 )
@@ -49,7 +50,7 @@ func (norminette *Norminette) Version() (*protocol.VersionResponse, error) {
 	}
 
 	response := &protocol.VersionResponse{}
-	message := <- messages
+	message := <-messages
 	if err = json.Unmarshal(message.Body, response); err != nil {
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func (norminette *Norminette) CheckFiles(files ...string) ([]protocol.CheckFileR
 	}
 
 	for _, file := range files {
-		request, err := protocol.NewCheckFileRequest(file)
+		request, err := protocol.NewCheckFileRequest(file, norminette.DisabledRules)
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +87,7 @@ func (norminette *Norminette) CheckFiles(files ...string) ([]protocol.CheckFileR
 			return nil, err
 		}
 		result = append(result, response)
-		count ++
+		count++
 		if count == len(files) {
 			break
 		}
